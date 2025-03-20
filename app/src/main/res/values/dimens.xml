@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Padding -->
+    <dimen name="large_padding">32dp</dimen>
+    <dimen name="medium_padding">16dp</dimen>
+    <dimen name="small_padding">10dp</dimen>
+    <dimen name="tiny_padding">3dp</dimen>
+
+    <!-- Size -->
+    <dimen name="big_size">80dp</dimen>
+    <dimen name="medium_size">50dp</dimen>
+    <dimen name="small_size">40dp</dimen>
+
+    <!-- Border -->
+    <dimen name="border">1dp</dimen>
+</resources>

@@ -10,7 +10,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class ListViewModel @Inject constructor(
-    val listRepository: ListRepository,
+    private val listRepository: ListRepository,
 ) : ViewModel() {
     private val _uiStateFlow = MutableStateFlow(ListUiState())
     val uiStateFlow = _uiStateFlow.asStateFlow()
@@ -20,6 +20,8 @@ class ListViewModel @Inject constructor(
             listRepository.getHiringList().body()?.let { response ->
                 _uiStateFlow.value = _uiStateFlow.value.copy(
                     list = response
+                        .filter { it.name != null && it.name != ""}
+                        .sortedWith(compareBy({ it.listId }, { it.name }))
                 )
             }
         }
