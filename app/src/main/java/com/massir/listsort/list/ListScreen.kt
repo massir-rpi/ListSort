@@ -1,23 +1,22 @@
 package com.massir.listsort.list
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconToggleButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.dimensionResource
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -26,6 +25,8 @@ import androidx.navigation.NavController
 import com.massir.listsort.R
 import com.massir.listsort.api.ListItem
 import com.massir.listsort.ui.theme.ListSortTheme
+
+private const val SCREEN_NAME = "ListScreen"
 
 @Composable
 fun ListScreen(
@@ -40,21 +41,46 @@ fun ListScreen(
 
     Screen(
         uiState = uiState,
+        onTabViewToggled = { viewModel.setIsTabViewToggledOn(it) },
+        onListIdSelected = { viewModel.setListIdSelected(it) }
     )
 }
 
-@Preview
+@Preview(group = SCREEN_NAME)
 @Composable
-fun ListScreenPreview() {
+fun OneListPreview() {
+    ListScreenPreview(
+        isTabViewToggledOn = false
+    )
+}
+
+@Preview(group = SCREEN_NAME)
+@Composable
+fun TabListsPreview() {
+    ListScreenPreview(
+        isTabViewToggledOn = true
+    )
+}
+
+@Composable
+private fun ListScreenPreview(
+    isTabViewToggledOn: Boolean,
+) {
     ListSortTheme {
         Screen(
             uiState = ListUiState(
-                list = listOf(
+                isTabViewToggledOn = isTabViewToggledOn,
+                listMap = listOf(
+                    ListItem(51, 3, "Item 51"),
                     ListItem(5321,1,"Item 5321"),
                     ListItem(1642, 2, "Item 1642"),
                     ListItem(621,1, "Item 621"),
-                ),
+                )
+                    .sortedWith(compareBy({ it.listId }, { it.id }))
+                    .groupBy { it.listId ?: -1 },
             ),
+            onTabViewToggled = {},
+            onListIdSelected = {},
         )
     }
 }
@@ -62,6 +88,8 @@ fun ListScreenPreview() {
 @Composable
 private fun Screen (
     uiState: ListUiState,
+    onTabViewToggled: ((Boolean) -> Unit),
+    onListIdSelected: ((Int) -> Unit),
     modifier: Modifier = Modifier,
 ) {
     Scaffold(
@@ -70,98 +98,57 @@ private fun Screen (
                 .fillMaxSize(),
         ),
     ) { innerPadding ->
-        Column(
+        Box(
             Modifier
-                .padding(innerPadding),
+                .padding(innerPadding)
+                .fillMaxSize(),
         ) {
-            ItemCell(
-                listId = stringResource(R.string.list_id),
-                id = stringResource(R.string.id),
-                name = stringResource(R.string.name),
-                textColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                backgroundColor = MaterialTheme.colorScheme.primaryContainer
-            )
-            LazyColumn(
-                Modifier
-                    .fillMaxSize(),
-            ) {
-                items(
-                    count = uiState.list.size
-                ) { index ->
-                    ItemCell(
-                        listId = uiState.list[index].listId,
-                        id = uiState.list[index].id,
-                        name = uiState.list[index].name,
-                    )
-                }
+            if (uiState.isTabViewToggledOn) {
+                TabulatedList(
+                    listMap = uiState.listMap,
+                    listIdSelected = uiState.listIdSelected,
+                    onListIdSelected = onListIdSelected,
+                )
+            } else {
+                OneList(
+                    listMap = uiState.listMap,
+                )
             }
+            ToggleViewButton(
+                isToggledOn = uiState.isTabViewToggledOn,
+                onToggle = onTabViewToggled,
+                modifier = Modifier
+                    .padding(dimensionResource(R.dimen.small_padding))
+                    .size(dimensionResource(R.dimen.medium_size))
+                    .align(Alignment.BottomEnd),
+            )
         }
     }
 }
 
 @Composable
-private fun ItemCell(
-    listId: Any?,
-    id: Any?,
-    name: Any?,
+private fun ToggleViewButton(
+    isToggledOn: Boolean,
+    onToggle: ((Boolean) -> Unit),
     modifier: Modifier = Modifier,
-    textColor: Color = Color.Unspecified,
-    backgroundColor: Color = Color.Unspecified,
 ) {
-    Row(
+    IconToggleButton(
+        checked = isToggledOn,
+        onCheckedChange = onToggle,
         modifier = modifier.then(
             Modifier
-                .fillMaxWidth(),
-        )
+                .background(
+                    color =  if (isToggledOn) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.errorContainer,
+                    shape = CircleShape,
+                ),
+        ),
     ) {
-        TextBox(
-            listId.toString(),
+        Icon(
+            painter = if (isToggledOn) painterResource(R.drawable.select_window) else painterResource(R.drawable.select_window_off),
+            tint = if (isToggledOn) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onErrorContainer,
+            contentDescription = stringResource(R.string.toggle_view),
             modifier = Modifier
-                .weight(1f)
-                .fillMaxWidth(),
-            textColor = textColor,
-            backgroundColor = backgroundColor,
-        )
-        TextBox(
-            id.toString(),
-            modifier = Modifier
-                .weight(1f)
-                .fillMaxWidth(),
-            textColor = textColor,
-            backgroundColor = backgroundColor,
-        )
-        TextBox(
-            name.toString(),
-            modifier = Modifier
-                .weight(1f)
-                .fillMaxWidth(),
-            textColor = textColor,
-            backgroundColor = backgroundColor,
-        )
-    }
-}
-
-@Composable
-private fun TextBox(
-    text: String,
-    modifier: Modifier = Modifier,
-    textColor: Color = Color.Unspecified,
-    backgroundColor: Color = Color.Unspecified,
-) {
-    Box(
-        modifier = modifier.then(
-            Modifier
-                .background(backgroundColor)
-                .border(
-                    width = dimensionResource(R.dimen.border),
-                    color = MaterialTheme.colorScheme.outline,
-                )
-                .padding(dimensionResource(R.dimen.tiny_padding))
-        )
-    ) {
-        Text(
-            text = text,
-            color = textColor,
+                .size(dimensionResource(R.dimen.small_size)),
         )
     }
 }

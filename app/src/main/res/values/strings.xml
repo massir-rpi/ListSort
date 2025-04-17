@@ -2,5 +2,7 @@
     <string name="app_name">List Sort</string>
     <string name="id">ID</string>
     <string name="list_id">List ID</string>
+    <string name="list_x">List %s</string>
     <string name="name">Name</string>
+    <string name="toggle_view">Toggle View</string>
 </resources>

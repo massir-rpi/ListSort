@@ -18,12 +18,26 @@ class ListViewModel @Inject constructor(
     fun load() {
         viewModelScope.launch {
             listRepository.getHiringList().body()?.let { response ->
+                val listSorted = response
+                    .filter { it.name != null && it.name != ""}
+                    .sortedWith(compareBy({ it.listId }, { it.id }))
                 _uiStateFlow.value = _uiStateFlow.value.copy(
-                    list = response
-                        .filter { it.name != null && it.name != ""}
-                        .sortedWith(compareBy({ it.listId }, { it.name }))
+                    listMap = listSorted.groupBy { it.listId ?: -1 },
+                    listIdSelected = listSorted.first().listId ?: -1,
                 )
             }
         }
+    }
+
+    fun setIsTabViewToggledOn(isOn: Boolean) {
+        _uiStateFlow.value = _uiStateFlow.value.copy(
+            isTabViewToggledOn = isOn
+        )
+    }
+
+    fun setListIdSelected(listId: Int) {
+        _uiStateFlow.value = _uiStateFlow.value.copy(
+            listIdSelected = listId,
+        )
     }
 }
